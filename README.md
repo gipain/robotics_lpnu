@@ -1,27 +1,23 @@
-# Robotics Introduction Labs
+## Project Description
+This repository contains the first laboratory work on robotics. The goal is to design and simulate a mobile robot using the **SDF (Simulation Description Format)** within the **Gazebo Harmonic** environment. The project is fully containerized using **Docker** to ensure environment consistency across different systems.
 
-Hands-on labs for learning ROS2 and robotics simulation with Gazebo.
 
----
 
 ## Prerequisites
-
-- **Ubuntu 24.04** (native, WSL2, dual boot, or VirtualBox)
-- **Git** and **GitHub account** - [GitHub Hello World Guide](https://docs.github.com/en/get-started/start-your-journey/hello-world)
-- **30 GB free disk space**
-- **8 GB RAM** (16 GB recommended)
-
-**Don't have Ubuntu 24.04?** See the [Installation Guide](docs/INSTALLATION_GUIDE.md) for setup instructions.
+To run this project, you need:
+* **Windows 11** with **WSL2** (Ubuntu 24.04)
+* **Docker Desktop** (WSL2 backend enabled)
+* **WSLg** or an X-server (like VcXsrv) for GUI rendering
 
 ---
-### 1. Clone Repository
 
+## Installation & Setup
+
+### 1. Clone the Repository
 ```bash
-cd ~
-git clone https://github.com/RybOlya/robotics_lpnu.git
-cd robotics_lpnu
+git clone https://github.com/gipain/robotics_lab1.git
+cd robotics_lab1
 ```
-
 ### 2. Build Docker Image
 
 ```bash
@@ -42,130 +38,28 @@ code .
 ```
 
 
-#### Open Additional Terminals
+#### Open Additional Terminals for testing
 
 ```bash
 # In a new terminal window
 ./scripts/cmd bash
 ```
 ---
-
-## Labs
-
-| Lab | Topic | 
-|-----|-------|
-| **[Lab 1](lab1/README.md)** | Building a Robot in Gazebo | 2 sessions | Follow Gazebo tutorials to build a mobile robot with sensors |
-| **[Lab 2](lab2/README.md)** | ROS2 Integration | 2 sessions | Create ROS2 nodes, control the robot, visualize sensor data |
-
-### Development Workflow
-
-**The typical development cycle:**
-
-1. **Edit files** on your host machine (outside container) using your favorite IDE
-   - Files in `/home/YOUR_USER/robotics_lpnu/` are automatically visible inside container at `/opt/ws/src/code/`
-
-2. **Enter container** (if not already inside):
-   ```bash
-   ./scripts/cmd bash
-   ```
-
-3. **Build your code** inside container:
-   ```bash
-   colcon build
-   source install/setup.bash
-   ```
-
-4. **Run and test** inside container:
-   ```bash
-   gz sim worlds/robot.sdf        # For Lab 1
-   ros2 launch lab2 ...            # For Lab 2
-   ```
-
-5. **Repeat** steps 1-4 as needed
-
-**Important**: Changes to files are instant (no rebuild needed for world files, Python changes need rebuild).
-
-### Useful Workspace Commands
-
+## Testing
+### Launching
+To test simulation you need to launch gazebo simulation
 ```bash
-# Build only specific packages
-colcon build --packages-select lab1
-
-# Build with symbolic links (faster for Python)
-colcon build --symlink-install
-
-# In case of building at wrong level for example - clean workspace (remove build artifacts)
-rm -rf ./build ./install ./log
+gz sim /opt/ws/src/code/lab1/worlds/robot.sdf
 ```
-
-**Note:** After cleaning, you must rebuild with `colcon build` before running any ROS2 commands.
-
----
-
-## Repository Structure
-
-```
-robotics_lpnu/
-├── lab1/                          # Lab 1: Building a Robot in Gazebo
-│   ├── worlds/robot.sdf          # Robot world file
-│   └── README.md                  # Lab 1 instructions
-├── lab2/                          # Lab 2: ROS2 Integration
-│   ├── lab2/                      # Python nodes (you create)
-│   ├── launch/                    # Launch files (you create)
-│   ├── config/robot.rviz         # RViz configuration
-│   └── README.md                  # Lab 2 instructions
-├── docs/                          
-│   └── INSTALLATION_GUIDE.md      # OS setup guide
-├── docker/                        
-│   ├── Dockerfile                 # ROS2 + Gazebo image
-│   └── entrypoint.bash           
-└── scripts/                       
-    └── cmd                        # Docker helper script
-```
-
----
-
-## Troubleshooting
-
-### Docker permission denied
+### Controling
+To control your robot you can use Teleop plugin to control using WASD. But you can also control robot by sending messages to topic "/cmd_vel" inside your second terminal.
+For example:
 ```bash
-sudo usermod -aG docker $USER
-newgrp docker
+gz topic -t "/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.0}"
 ```
-
-### GUI not working
+### Verify LiDAR sensor data
+To verify that the LiDAR is scanning the obstacles, open a third terminal, enter the container (./scripts/cmd bash), and read the live data stream:
 ```bash
-# Linux: Allow X11 connections
-xhost +local:docker
-
-# WSL2: Update WSLg
-wsl --update
+gz topic -e -t /lidar
 ```
-
-### Container won't start
-```bash
-# Remove inactive containers
-docker system prune -a
-./scripts/cmd build-docker
-```
-
-### ROS2 commands not found / Package issues
-```bash
-# Try re-sourcing the environment
-source /opt/ros/jazzy/setup.bash
-source /opt/ws/install/setup.bash
-
-# Or restart the container
-exit
-./scripts/cmd run
-```
-
----
-
-## Resources
-
-- [ROS 2 Jazzy Documentation](https://docs.ros.org/en/jazzy/)
-- [Gazebo Harmonic Documentation](https://gazebosim.org/docs/harmonic/)
-- [SDFormat Specification](http://sdformat.org/)
-- [Docker for Robotics](https://articulatedrobotics.xyz/category/docker-for-robotics)
-- [Installation Guide](docs/INSTALLATION_GUIDE.md) - OS setup
+Press Ctrl+C to stop the data stream.
